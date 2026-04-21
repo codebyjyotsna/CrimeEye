@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CrimeEye v2 — Advanced Crime Prevention Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:    #04060d;
+  --bg2:   #080c18;
+  --bg3:   #0d1120;
+  --bg4:   #111726;
+  --bg5:   #161e2e;
+  --glass: rgba(13,17,32,0.85);
+  --border:  rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --border3: rgba(255,255,255,0.18);
+  --text:  #dde4f0;
+  --text2: #8892b0;
+  --text3: #4a5270;
+  --accent: #4f8cff;
+  --accent2: #2563eb;
+  --accent-glow: rgba(79,140,255,0.25);
+  --red:   #f04040;
+  --red2:  #c72828;
+  --red-glow: rgba(240,64,64,0.2);
+  --amber: #f5a623;
+  --amber-glow: rgba(245,166,35,0.2);
+  --green: #26d07c;
+  --green-glow: rgba(38,208,124,0.2);
+  --purple:#b06ff5;
+  --teal:  #22d3ee;
+  --pink:  #ec4899;
+  --mono: 'JetBrains Mono', 'Courier New', monospace;
+  --display: 'Outfit', sans-serif;
+  --sans:  'Inter', system-ui, sans-serif;
+  --sidebar-w: 236px;
+  --topbar-h: 54px;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); height:100vh; overflow:hidden; font-feature-settings:'cv02','cv03','cv04','cv11'; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; letter-spacing:-0.01em; }
+
+/* ─── SCANLINE OVERLAY ─── */
+body::after { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); pointer-events:none; z-index:9999; }
+
+/* ─── LAYOUT ─── */
+.shell { display:flex; height:100vh; }
+.sidebar { width:var(--sidebar-w); flex-shrink:0; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.main { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+.topbar { height:var(--topbar-h); background:var(--bg2); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 18px; gap:10px; flex-shrink:0; }
+.content { flex:1; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; gap:14px; }
+.content::-webkit-scrollbar { width:3px; }
+.content::-webkit-scrollbar-thumb { background:var(--bg5); border-radius:2px; }
+
+/* ─── SIDEBAR ─── */
+.logo-area { padding:17px 15px 13px; border-bottom:1px solid var(--border); }
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-mark { width:33px; height:33px; border-radius:9px; background:linear-gradient(135deg,#4f8cff,#b06ff5); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; box-shadow:0 0 18px rgba(79,140,255,0.35); }
+.logo-name { font-family:var(--display); font-size:16.5px; font-weight:800; letter-spacing:-0.3px; }
+.logo-ver { font-size:9.5px; color:var(--text3); font-family:var(--mono); letter-spacing:0.8px; margin-top:1px; }
+.nav { padding:10px 8px; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:1px; }
+.nav::-webkit-scrollbar { display:none; }
+.sec-lbl { font-size:9.5px; color:var(--text3); letter-spacing:1.4px; text-transform:uppercase; padding:12px 8px 5px; font-weight:600; font-family:var(--mono); }
+.nav-item { display:flex; align-items:center; gap:9px; padding:7.5px 10px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; color:var(--text2); transition:all .12s; border:1px solid transparent; position:relative; letter-spacing:-0.01em; }
+.nav-item:hover { background:var(--bg3); color:var(--text); }
+.nav-item.active { background:rgba(79,140,255,0.1); color:var(--accent); border-color:rgba(79,140,255,0.18); }
+.nav-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+.nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:9px; font-weight:700; padding:1.5px 6px; border-radius:20px; font-family:var(--mono); min-width:18px; text-align:center; letter-spacing:0; }
+.nav-badge.blue { background:var(--accent2); }
+.nav-badge.amber { background:#c27a0a; }
+.sidebar-foot { padding:10px 8px; border-top:1px solid var(--border); display:flex;flex-direction:column;gap:6px; }
+.live-pill { display:flex; align-items:center; gap:7px; padding:8px 11px; background:rgba(38,208,124,0.07); border:1px solid rgba(38,208,124,0.18); border-radius:8px; font-size:11.5px; color:var(--green); font-family:var(--mono); font-weight:500; }
+.dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.dot-green { background:var(--green); box-shadow:0 0 5px var(--green); animation:blink 2s infinite; }
+.dot-red { background:var(--red); box-shadow:0 0 5px var(--red); }
+.dot-amber { background:var(--amber); box-shadow:0 0 5px var(--amber); }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.4} }
+
+/* ─── TOPBAR ─── */
+.tb-title { font-family:var(--display); font-size:14.5px; font-weight:700; flex:1; letter-spacing:-0.2px; }
+.tb-chip { display:flex; align-items:center; gap:5px; padding:5px 11px; background:var(--bg3); border:1px solid var(--border); border-radius:7px; font-size:11.5px; color:var(--text2); white-space:nowrap; font-weight:400; }
+.tb-chip strong { color:var(--text); font-weight:600; font-family:var(--mono); letter-spacing:-0.02em; }
+.tb-chip.danger { background:rgba(240,64,64,0.07); border-color:rgba(240,64,64,0.2); }
+.tb-chip.danger strong { color:var(--red); }
+.btn { display:inline-flex; align-items:center; gap:5px; padding:6.5px 13px; border-radius:7px; font-size:12.5px; font-family:var(--sans); font-weight:500; cursor:pointer; border:none; transition:all .12s; letter-spacing:-0.01em; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent2); box-shadow:0 0 14px var(--accent-glow); }
+.btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border2); }
+.btn-ghost:hover { background:var(--bg4); color:var(--text); }
+.btn-danger { background:rgba(240,64,64,0.1); color:var(--red); border:1px solid rgba(240,64,64,0.22); }
+.btn-danger:hover { background:rgba(240,64,64,0.18); }
+.btn-success { background:rgba(38,208,124,0.12); color:var(--green); border:1px solid rgba(38,208,124,0.25); }
+.btn-success:hover { background:rgba(38,208,124,0.2); }
+.btn-amber { background:rgba(245,166,35,0.1); color:var(--amber); border:1px solid rgba(245,166,35,0.22); }
+.btn-amber:hover { background:rgba(245,166,35,0.18); }
+
+/* ─── SEVERITY PILLS ─── */
+.sev { display:inline-flex; align-items:center; padding:2.5px 8px; border-radius:20px; font-size:10px; font-weight:700; font-family:var(--mono); letter-spacing:.5px; }
+.sev-critical { background:rgba(240,64,64,0.13); color:var(--red); border:1px solid rgba(240,64,64,0.28); }
+.sev-high { background:rgba(245,166,35,0.13); color:var(--amber); border:1px solid rgba(245,166,35,0.28); }
+.sev-medium { background:rgba(79,140,255,0.13); color:var(--accent); border:1px solid rgba(79,140,255,0.28); }
+.sev-low { background:rgba(38,208,124,0.13); color:var(--green); border:1px solid rgba(38,208,124,0.28); }
+
+/* ─── TAGS ─── */
+.tag { display:inline-flex; align-items:center; gap:3px; padding:2.5px 8px; border-radius:20px; font-size:10px; font-weight:500; font-family:var(--mono); }
+.tag-teal { background:rgba(34,211,238,0.1); color:var(--teal); border:1px solid rgba(34,211,238,0.22); }
+.tag-purple { background:rgba(176,111,245,0.1); color:var(--purple); border:1px solid rgba(176,111,245,0.22); }
+.tag-green { background:rgba(38,208,124,0.1); color:var(--green); border:1px solid rgba(38,208,124,0.22); }
+.tag-amber { background:rgba(245,166,35,0.1); color:var(--amber); border:1px solid rgba(245,166,35,0.22); }
+.tag-pink { background:rgba(236,72,153,0.1); color:var(--pink); border:1px solid rgba(236,72,153,0.22); }
+
+/* ─── PANELS ─── */
+.panel { background:var(--bg3); border:1px solid var(--border); border-radius:13px; overflow:hidden; }
+.panel-head { padding:13px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.panel-title { font-size:13px; font-weight:600; display:flex; align-items:center; gap:7px; font-family:var(--display); letter-spacing:-0.1px; }
+
+/* ─── METRIC CARDS ─── */
+.metric { background:var(--bg3); border:1px solid var(--border); border-radius:13px; padding:15px; position:relative; overflow:hidden; }
+.metric::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--ml, var(--accent)); }
+.metric-label { font-size:10.5px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-family:var(--mono); font-weight:500; }
+.metric-value { font-size:28px; font-weight:800; font-family:var(--display); color:var(--text); line-height:1; letter-spacing:-1px; }
+.metric-sub { font-size:10.5px; color:var(--text3); margin-top:6px; display:flex; align-items:center; gap:4px; font-family:var(--mono); }
+.metric-up { color:var(--red); }
+.metric-dn { color:var(--green); }
+.metric-spark { position:absolute; bottom:10px; right:12px; opacity:.35; }
+
+/* ─── GRIDS ─── */
+.g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.g3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.g2l { display:grid; grid-template-columns:1.6fr 1fr; gap:12px; }
+
+/* ─── ALERT FEED ─── */
+.alert-item { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; gap:11px; cursor:pointer; transition:background .1s; }
+.alert-item:hover { background:rgba(255,255,255,0.02); }
+.alert-item:last-child { border-bottom:none; }
+.alert-item.fresh { animation:flashIn .5s ease; }
+@keyframes flashIn { from{background:rgba(240,64,64,0.07)} to{background:transparent} }
+.alert-item.acknowledged { opacity:.5; }
+.alert-icon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.alert-content { flex:1; min-width:0; }
+.alert-title { font-size:13px; font-weight:600; margin-bottom:3px; font-family:var(--display); letter-spacing:-0.1px; }
+.alert-meta { font-size:11px; color:var(--text2); display:flex; gap:6px; align-items:center; flex-wrap:wrap; font-weight:400; }
+.score-bar { height:2.5px; background:var(--bg5); border-radius:2px; margin-top:5px; overflow:hidden; }
+.score-fill { height:100%; border-radius:2px; transition:width 1.2s ease; }
+.alert-actions { display:flex; gap:4px; margin-top:7px; }
+
+/* ─── CAMERA GRID ─── */
+.cam-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:12px; }
+.cam-card { background:var(--bg4); border:1px solid var(--border); border-radius:10px; overflow:hidden; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+.cam-card:hover { border-color:var(--border2); }
+.cam-card.crit-alert { border-color:var(--red); box-shadow:0 0 16px var(--red-glow); }
+.cam-card.high-alert { border-color:var(--amber); box-shadow:0 0 10px var(--amber-glow); }
+.cam-feed { aspect-ratio:16/9; background:var(--bg); position:relative; overflow:hidden; }
+.cam-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; padding:7px; }
+.cam-id-tag { font-size:9px; font-family:var(--mono); color:rgba(255,255,255,0.55); background:rgba(0,0,0,0.6); padding:2px 6px; border-radius:4px; width:fit-content; letter-spacing:0.02em; }
+.rec-dot { display:flex; align-items:center; gap:4px; font-size:9px; font-family:var(--mono); color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.65); padding:2px 7px; border-radius:4px; }
+.cam-foot { padding:7px 10px; display:flex; justify-content:space-between; align-items:center; }
+.cam-name { font-size:11.5px; font-weight:600; letter-spacing:-0.1px; }
+.cam-zone { font-size:10px; color:var(--text3); font-family:var(--mono); }
+
+/* ─── PTZ CONTROLS ─── */
+.ptz-panel { position:absolute; right:6px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:3px; opacity:0; transition:opacity .2s; }
+.cam-card:hover .ptz-panel { opacity:1; }
+.ptz-btn { width:22px; height:22px; background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.15); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:9px; cursor:pointer; color:rgba(255,255,255,0.7); transition:background .1s; }
+.ptz-btn:hover { background:rgba(79,140,255,0.3); color:#fff; }
+
+/* ─── BLOCKCHAIN ─── */
+.block-item { padding:10px 15px; border-bottom:1px solid var(--border); display:flex; gap:11px; align-items:flex-start; }
+.block-item:last-child { border-bottom:none; }
+.chain-dot { width:7px; height:7px; border-radius:50%; background:var(--teal); box-shadow:0 0 5px var(--teal); margin-top:5px; flex-shrink:0; }
+.block-hash { font-family:var(--mono); font-size:10.5px; color:var(--teal); word-break:break-all; letter-spacing:0.02em; }
+.block-meta { font-size:11px; color:var(--text2); margin-top:3px; }
+.block-time { font-family:var(--mono); font-size:10.5px; color:var(--text3); flex-shrink:0; }
+
+/* ─── TIMELINE ─── */
+.timeline-item { display:flex; gap:12px; padding:10px 16px; border-bottom:1px solid var(--border); position:relative; }
+.timeline-line { position:absolute; left:22px; top:30px; bottom:-1px; width:1px; background:var(--border); }
+.tl-icon { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0; z-index:1; margin-top:2px; }
+.tl-content { flex:1; }
+.tl-title { font-size:12.5px; font-weight:600; letter-spacing:-0.1px; }
+.tl-desc { font-size:11.5px; color:var(--text2); margin-top:2px; font-weight:400; }
+.tl-time { font-family:var(--mono); font-size:10.5px; color:var(--text3); flex-shrink:0; }
+
+/* ─── DISPATCH TRACKER ─── */
+.dispatch-item { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; }
+.dispatch-item:last-child { border-bottom:none; }
+.dispatch-avatar { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.dispatch-bar { height:4px; background:var(--bg5); border-radius:2px; overflow:hidden; margin-top:5px; }
+.dispatch-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),var(--teal)); animation:progbar 2s ease-in-out infinite alternate; }
+@keyframes progbar { from{opacity:.7} to{opacity:1} }
+.eta-badge { font-family:var(--mono); font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:6px; }
+.eta-enroute { background:rgba(38,208,124,0.12); color:var(--green); border:1px solid rgba(38,208,124,0.22); }
+.eta-standby { background:rgba(245,166,35,0.12); color:var(--amber); border:1px solid rgba(245,166,35,0.22); }
+.eta-onscene { background:rgba(79,140,255,0.12); color:var(--accent); border:1px solid rgba(79,140,255,0.22); }
+
+/* ─── AI ANALYSIS ─── */
+.ai-block { background:rgba(79,140,255,0.04); border:1px solid rgba(79,140,255,0.15); border-radius:10px; padding:15px; }
+.ai-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:12.5px; font-weight:600; color:var(--accent); letter-spacing:-0.1px; }
+.ai-text { font-size:12.5px; color:var(--text2); line-height:1.75; }
+.ai-text strong { color:var(--text); font-weight:600; }
+.confidence-row { display:flex; align-items:center; gap:10px; margin-top:10px; }
+.confidence-label { font-size:10.5px; color:var(--text3); font-family:var(--mono); width:85px; flex-shrink:0; }
+.confidence-track { flex:1; height:5px; background:var(--bg5); border-radius:3px; overflow:hidden; }
+.confidence-fill { height:100%; border-radius:3px; }
+.confidence-val { font-size:10.5px; font-family:var(--mono); color:var(--text2); width:38px; text-align:right; flex-shrink:0; }
+
+/* ─── ANALYTICS CHART ─── */
+.chart-wrap { padding:15px 17px; }
+.bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.bar-label { font-size:10.5px; color:var(--text2); width:82px; flex-shrink:0; text-align:right; font-family:var(--mono); }
+.bar-track { flex:1; background:var(--bg5); border-radius:3px; height:21px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; display:flex; align-items:center; padding:0 9px; font-size:10.5px; font-family:var(--mono); color:rgba(255,255,255,0.8); transition:width 1.4s cubic-bezier(.16,1,.3,1); }
+.mini-chart { display:flex; align-items:flex-end; gap:2px; height:32px; }
+.mini-bar { flex:1; border-radius:2px 2px 0 0; min-height:3px; transition:height .3s; }
+
+/* ─── HEATMAP ─── */
+#map-bg { fill:none; }
+
+/* ─── PREDICTION CARD ─── */
+.predict-card { background:var(--bg4); border:1px solid var(--border); border-radius:10px; padding:12px; }
+.predict-score { font-size:28px; font-weight:800; font-family:var(--display); }
+.predict-ring { position:relative; display:inline-block; }
+
+/* ─── MODAL ─── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .2s; }
+.overlay.open { opacity:1; pointer-events:all; }
+.modal { background:var(--bg3); border:1px solid var(--border2); border-radius:16px; width:620px; max-width:93vw; max-height:88vh; overflow-y:auto; }
+.modal::-webkit-scrollbar { width:3px; }
+.modal::-webkit-scrollbar-thumb { background:var(--bg5); }
+.modal-head { padding:18px 20px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; }
+.modal-title { font-family:var(--display); font-size:15.5px; font-weight:700; letter-spacing:-0.2px; }
+.modal-close { background:none; border:none; color:var(--text3); cursor:pointer; font-size:17px; transition:color .1s; line-height:1; }
+.modal-close:hover { color:var(--text); }
+.modal-body { padding:18px 20px; }
+.modal-video { aspect-ratio:16/9; background:var(--bg4); border-radius:10px; overflow:hidden; position:relative; margin-bottom:14px; border:1px solid var(--border); }
+.modal-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+.mf { background:var(--bg4); border-radius:8px; padding:10px 12px; }
+.mf-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:4px; font-family:var(--mono); font-weight:500; }
+.mf-value { font-size:12.5px; font-weight:600; font-family:var(--mono); letter-spacing:-0.02em; }
+.chain-section { background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.18); border-radius:10px; padding:12px; margin-bottom:14px; }
+.chain-title { font-size:11px; color:var(--teal); text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; display:flex; align-items:center; gap:6px; font-family:var(--mono); font-weight:500; }
+.hash-text { font-family:var(--mono); font-size:10px; color:var(--teal); word-break:break-all; line-height:1.8; letter-spacing:0.02em; }
+.modal-actions { display:flex; gap:8px; margin-top:4px; }
+
+/* ─── TRIAGE MODE ─── */
+.triage-overlay { position:fixed; inset:0; background:rgba(2,4,10,0.95); z-index:500; display:none; flex-direction:column; }
+.triage-overlay.open { display:flex; }
+.triage-head { padding:14px 20px; border-bottom:1px solid rgba(240,64,64,0.25); display:flex; align-items:center; justify-content:space-between; background:rgba(240,64,64,0.05); }
+.triage-title { font-family:var(--display); font-size:16.5px; font-weight:800; color:var(--red); display:flex; align-items:center; gap:10px; letter-spacing:-0.2px; }
+.triage-body { flex:1; display:grid; grid-template-columns:repeat(3,1fr); gap:0; overflow:hidden; }
+.triage-cell { border-right:1px solid var(--border); border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+.triage-cell:nth-child(3) { border-right:none; }
+.triage-cell:nth-child(4), .triage-cell:nth-child(5), .triage-cell:nth-child(6) { border-bottom:none; }
+.triage-info { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,0.85)); padding:8px 10px; }
+
+/* ─── NOTIFICATION TOAST ─── */
+.toast-container { position:fixed; top:16px; right:16px; z-index:2000; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+.toast { background:var(--bg3); border:1px solid var(--border2); border-radius:11px; padding:12px 16px; max-width:320px; display:flex; gap:11px; align-items:flex-start; pointer-events:all; animation:toastIn .3s ease; box-shadow:0 8px 32px rgba(0,0,0,0.5); }
+.toast.critical { border-color:rgba(240,64,64,0.4); background:rgba(240,64,64,0.07); }
+@keyframes toastIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes toastOut { from{transform:translateX(0);opacity:1} to{transform:translateX(110%);opacity:0} }
+.toast.out { animation:toastOut .25s ease forwards; }
+.toast-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.toast-title { font-size:13px; font-weight:700; font-family:var(--display); margin-bottom:3px; letter-spacing:-0.1px; }
+.toast-desc { font-size:11.5px; color:var(--text2); line-height:1.45; font-weight:400; }
+.toast-time { font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:4px; }
+
+/* ─── SETTINGS ─── */
+.setting-row { background:var(--bg4); border:1px solid var(--border); border-radius:9px; padding:12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:7px; }
+.toggle { position:relative; width:36px; height:20px; flex-shrink:0; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; inset:0; border-radius:10px; background:var(--bg5); border:1px solid var(--border2); cursor:pointer; transition:.25s; }
+.toggle input:checked + .toggle-slider { background:rgba(79,140,255,0.3); border-color:var(--accent); }
+.toggle-slider::after { content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:#888; bottom:2px; left:2px; transition:.25s; }
+.toggle input:checked + .toggle-slider::after { transform:translateX(16px); background:var(--accent); }
+.slider-input { width:100%; -webkit-appearance:none; appearance:none; height:4px; border-radius:2px; background:var(--bg5); border:1px solid var(--border2); outline:none; }
+.slider-input::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer; }
+.threshold-val { font-family:var(--mono); font-size:12.5px; color:var(--accent); font-weight:600; }
+
+/* ─── WHATSAPP ─── */
+.wa-bubble { background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.15); border-radius:10px; padding:10px 12px; max-width:500px; }
+.wa-text { font-size:12px; font-family:var(--mono); white-space:pre-line; color:var(--text); line-height:1.65; letter-spacing:0.01em; }
+.wa-status { font-size:10.5px; color:var(--text3); margin-top:6px; display:flex; align-items:center; gap:6px; font-family:var(--mono); }
+
+/* ─── LOADING SPINNER ─── */
+.spin { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.1); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* ─── MISC ─── */
+.fps-badge { font-family:var(--mono); font-size:10px; color:var(--green); }
+.proc-bar { height:2px; background:rgba(79,140,255,0.1); border-radius:1px; overflow:hidden; }
+.proc-fill { height:100%; background:var(--accent); border-radius:1px; animation:proc 1.7s ease-in-out infinite; }
+@keyframes proc { 0%{width:0%;margin-left:0} 50%{width:55%;margin-left:20%} 100%{width:0%;margin-left:100%} }
+select { background:var(--bg4); border:1px solid var(--border2); color:var(--text); border-radius:7px; padding:5px 9px; font-size:12px; font-family:var(--sans); outline:none; cursor:pointer; }
+input[type=text] { background:var(--bg4); border:1px solid var(--border2); color:var(--text); border-radius:7px; padding:6px 11px; font-size:12.5px; font-family:var(--sans); outline:none; }
+input[type=text]:focus { border-color:var(--accent); }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--bg5); border-radius:2px; }
+
+/* ─── PULSE RING for map ─── */
+@keyframes ring { 0%{r:10;opacity:.6} 100%{r:24;opacity:0} }
+.pring { animation:ring 2.2s ease-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo">
+      <div class="logo-mark">👁</div>
+      <div>
+        <div class="logo-name">CrimeEye</div>
+        <div class="logo-ver">REAL-TIME PREVENTION</div>
+      </div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="sec-lbl">Monitor</div>
+    <div class="nav-item active" onclick="setPage('dashboard',this)">
+      <span class="nav-icon">⬛</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="setPage('cameras',this)">
+      <span class="nav-icon">📷</span> Live Feeds
+      <span class="nav-badge" id="cam-badge">12</span>
+    </div>
+    <div class="nav-item" onclick="setPage('alerts',this)">
+      <span class="nav-icon">🔔</span> Alerts
+      <span class="nav-badge" id="alert-badge">3</span>
+    </div>
+    <div class="nav-item" onclick="setPage('triage',this)">
+      <span class="nav-icon">⚡</span> Triage Mode
+      <span class="nav-badge" style="background:var(--purple)">NEW</span>
+    </div>
+    <div class="sec-lbl">Analysis</div>
+    <div class="nav-item" onclick="setPage('analytics',this)">
+      <span class="nav-icon">📊</span> Analytics
+    </div>
+    <div class="nav-item" onclick="setPage('heatmap',this)">
+      <span class="nav-icon">🗺</span> Heatmap
+    </div>
+    <div class="nav-item" onclick="setPage('prediction',this)">
+      <span class="nav-icon">🧠</span> AI Prediction
+      <span class="nav-badge blue">AI</span>
+    </div>
+    <div class="nav-item" onclick="setPage('dispatch',this)">
+      <span class="nav-icon">🚔</span> Dispatch
+      <span class="nav-badge amber" id="dispatch-badge">2</span>
+    </div>
+    <div class="sec-lbl">Evidence</div>
+    <div class="nav-item" onclick="setPage('blockchain',this)">
+      <span class="nav-icon">🔗</span> Blockchain Log
+    </div>
+    <div class="nav-item" onclick="setPage('whatsapp',this)">
+      <span class="nav-icon">💬</span> WhatsApp Log
+    </div>
+    <div class="sec-lbl">System</div>
+    <div class="nav-item" onclick="setPage('settings',this)">
+      <span class="nav-icon">⚙</span> Settings
+    </div>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="live-pill">
+      <div class="dot dot-green"></div>
+      <span>12 feeds · YOLOv8 live</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:4px 2px;font-size:10px;color:var(--text3);font-family:var(--mono);">
+      <span>CPU 34%</span><span>GPU 71%</span><span>MEM 2.1GB</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-title" id="page-title">Dashboard Overview</div>
+    <div class="proc-bar" style="width:80px;align-self:center;"><div class="proc-fill"></div></div>
+    <div class="tb-chip"><span class="dot dot-green" style="width:5px;height:5px;"></span> <strong id="tb-cams">11/12</strong> Online</div>
+    <div class="tb-chip danger">Alerts <strong id="tb-alerts">7</strong></div>
+    <div class="tb-chip"><strong>YOLOv8+DeepSORT</strong></div>
+    <div class="tb-chip"><span class="fps-badge" id="fps-counter">29.1 fps</span></div>
+    <button class="btn btn-danger" onclick="triggerTestAlert()">⚡ Simulate</button>
+    <button class="btn btn-ghost" onclick="openTriageMode()">⬛ Triage</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content-area"></div>
+</main>
+
+</div>
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══ ALERT MODAL ═══ -->
+<div class="overlay" id="alert-modal" onclick="maybeCloseModal(event)">
+  <div class="modal" id="modal-inner">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-title">Alert Detail</div>
+        <div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap;" id="modal-pills"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-video">
+        <canvas id="modal-canvas" style="width:100%;height:100%;display:block;"></canvas>
+        <div style="position:absolute;top:8px;right:8px;background:rgba(240,64,64,0.8);color:#fff;font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px;animation:blink 1s infinite">● REC</div>
+        <div style="position:absolute;bottom:8px;left:8px;display:flex;gap:6px;" id="modal-det-tags"></div>
+      </div>
+      <div class="modal-grid" id="modal-fields"></div>
+      <div class="chain-section">
+        <div class="chain-title">⛓ Algorand Blockchain Anchor</div>
+        <div class="hash-text" id="modal-hash"></div>
+      </div>
+      <div class="ai-block" style="margin-bottom:14px;" id="modal-ai"></div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" style="flex:1" onclick="dispatchPolice()">🚔 Dispatch PCR Van</button>
+        <button class="btn btn-amber" onclick="acknowledgeAlert()">✓ Acknowledge</button>
+        <button class="btn btn-ghost" onclick="downloadEvidence()">⬇ Evidence Pack</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Dismiss</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TRIAGE OVERLAY ═══ -->
+<div class="triage-overlay" id="triage-overlay">
+  <div class="triage-head">
+    <div class="triage-title">
+      <span style="animation:blink 1s infinite">⚠</span> TRIAGE MODE — ACTIVE INCIDENTS
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span style="font-size:12px;color:var(--text2)" id="triage-count">3 active incidents</span>
+      <button class="btn btn-ghost" onclick="closeTriageMode()">✕ Exit Triage</button>
+    </div>
+  </div>
+  <div class="triage-body" id="triage-body"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA LAYER
+// ═══════════════════════════════════════════════════════════
+const CAMERAS = [
+  {id:'CAM-001',name:'Thane Station East',lat:19.189,lng:72.961,status:'active',fps:28,alerts:1,zone:'Station',ptz:true},
+  {id:'CAM-002',name:'Kopri Naka',lat:19.195,lng:72.975,status:'active',fps:30,alerts:0,zone:'Market',ptz:false},
+  {id:'CAM-003',name:'Teen Haath Naka',lat:19.213,lng:72.978,status:'active',fps:27,alerts:2,zone:'Junction',ptz:true},
+  {id:'CAM-004',name:'Manpada Road',lat:19.207,lng:72.992,status:'active',fps:29,alerts:0,zone:'Residential',ptz:false},
+  {id:'CAM-005',name:'Viviana Mall Gate',lat:19.222,lng:72.998,status:'active',fps:30,alerts:0,zone:'Mall',ptz:true},
+  {id:'CAM-006',name:'Wagle Estate Jn',lat:19.183,lng:72.952,status:'active',fps:26,alerts:1,zone:'Industrial',ptz:false},
+  {id:'CAM-007',name:'Ghantali Mandir',lat:19.198,lng:72.967,status:'offline',fps:0,alerts:0,zone:'Temple',ptz:false},
+  {id:'CAM-008',name:'Pokhran Road 2',lat:19.228,lng:73.012,status:'active',fps:28,alerts:0,zone:'Road',ptz:false},
+  {id:'CAM-009',name:'Hiranandani Estate',lat:19.249,lng:73.035,status:'active',fps:30,alerts:0,zone:'Residential',ptz:true},
+  {id:'CAM-010',name:'Vartak Nagar',lat:19.175,lng:72.948,status:'active',fps:25,alerts:1,zone:'Market',ptz:false},
+  {id:'CAM-011',name:'Eastern Expressway',lat:19.162,lng:72.985,status:'active',fps:29,alerts:0,zone:'Highway',ptz:true},
+  {id:'CAM-012',name:'LBS Marg Thane',lat:19.190,lng:72.935,status:'active',fps:27,alerts:0,zone:'Road',ptz:false},
+];
+
+const DTYPES = {
+  fight:    {label:'Fight/Aggression',icon:'🥊',color:'var(--red)',aiDesc:'Bilateral aggressive posture, raised limbs, rapid directional movement between subjects.'},
+  loiter:   {label:'Loitering',icon:'🚶',color:'var(--amber)',aiDesc:'Stationary subject with no purposeful movement for extended duration. Cross-referenced with known dwell-time baseline.'},
+  crowd:    {label:'Crowd Density',icon:'👥',color:'var(--purple)',aiDesc:'High-density cluster exceeding safety threshold. Inter-personal distance below 0.5m detected across majority of group.'},
+  object:   {label:'Abandoned Object',icon:'💼',color:'var(--accent)',aiDesc:'Unattended object detected with no proximate owner for >180 seconds. Classified as potential security risk.'},
+  stampede: {label:'Stampede Pattern',icon:'⚠',color:'var(--red)',aiDesc:'Directional mass movement with high velocity variance. Panic-propagation vector detected from crowd flow model.'},
+  weapon:   {label:'Weapon Detected',icon:'🔫',color:'var(--red)',aiDesc:'Object silhouette matches firearm/bladed weapon class with 87% confidence. Immediate response recommended.'},
+};
+
+let ALERTS = [
+  {id:'EVT-8823',cam:'CAM-001',type:'fight',location:'Thane Station East',severity:'critical',score:92,time:'14:32:07',zone:'Station',lat:19.189,lng:72.961,tx:genHash(),acked:false,dispatched:false},
+  {id:'EVT-8820',cam:'CAM-003',type:'loiter',location:'Teen Haath Naka',severity:'high',score:74,time:'14:18:44',zone:'Junction',lat:19.213,lng:72.978,tx:genHash(),acked:false,dispatched:false},
+  {id:'EVT-8818',cam:'CAM-010',type:'crowd',location:'Vartak Nagar Market',severity:'high',score:81,time:'14:11:22',zone:'Market',lat:19.175,lng:72.948,tx:genHash(),acked:false,dispatched:false},
+  {id:'EVT-8815',cam:'CAM-006',type:'object',location:'Wagle Estate Jn',severity:'medium',score:58,time:'13:58:30',zone:'Industrial',lat:19.183,lng:72.952,tx:genHash(),acked:true,dispatched:false},
+  {id:'EVT-8812',cam:'CAM-003',type:'loiter',location:'Teen Haath Naka',severity:'medium',score:61,time:'13:45:18',zone:'Junction',lat:19.213,lng:72.978,tx:genHash(),acked:true,dispatched:false},
+  {id:'EVT-8809',cam:'CAM-001',type:'stampede',location:'Thane Station East',severity:'critical',score:95,time:'13:22:05',zone:'Station',lat:19.189,lng:72.961,tx:genHash(),acked:true,dispatched:true},
+];
+
+const OFFICERS = [
+  {id:'PCR-007',name:'Insp. Rajan Patil',status:'enroute',target:'EVT-8823',eta:4,lat:19.191,lng:72.957},
+  {id:'PCR-012',name:'SI Meera Desai',status:'onscene',target:'EVT-8809',eta:0,lat:19.189,lng:72.961},
+  {id:'PCR-003',name:'Const. Arjun Naik',status:'standby',target:null,eta:null,lat:19.200,lng:72.970},
+  {id:'PCR-009',name:'Insp. Kavita More',status:'enroute',target:'EVT-8818',eta:7,lat:19.178,lng:72.951},
+];
+
+let TIMELINE = [
+  {type:'dispatch',icon:'🚔',color:'var(--accent)',title:'PCR-007 dispatched to EVT-8823',desc:'Thane Station East · ETA 4 min',time:'14:32:15'},
+  {type:'alert',icon:'⚠',color:'var(--red)',title:'Critical: Fight/Aggression — CAM-001',desc:'Score 92/100 · Blockchain anchored',time:'14:32:07'},
+  {type:'alert',icon:'👥',color:'var(--purple)',title:'High: Crowd Density — CAM-010',desc:'Score 81/100 · 45 persons in 20m²',time:'14:11:22'},
+  {type:'ack',icon:'✓',color:'var(--green)',title:'EVT-8815 acknowledged by Operator',desc:'Wagle Estate Jn · Abandoned object',time:'14:01:04'},
+  {type:'alert',icon:'🚶',color:'var(--amber)',title:'Medium: Loitering — CAM-003',desc:'Score 74/100',time:'13:45:18'},
+  {type:'system',icon:'⛓',color:'var(--teal)',title:'Blockchain sync complete',desc:'6 records anchored · Algorand Mainnet',time:'13:22:30'},
+  {type:'alert',icon:'⚠',color:'var(--red)',title:'Critical: Stampede — CAM-001',desc:'Score 95/100 · All units notified',time:'13:22:05'},
+];
+
+let nextId = 8824;
+let alertCount = ALERTS.length;
+let currentPage = 'dashboard';
+let currentAlert = null;
+const canvasAnims = new Map();
+const SETTINGS_STATE = {
+  loiterThresh: 180,
+  crowdThresh: 30,
+  confThresh: 65,
+  autoDispatch: false,
+  nightMode: true,
+  blockchainAuto: true,
+  whatsappAuto: true,
+  faceBlur: true,
+  soundAlerts: true,
+  recordLoop: 30,
+};
+
+function genHash(){return Array.from({length:64},()=>'0123456789ABCDEF'[Math.floor(Math.random()*16)]).join('');}
+function sevClass(s){return{critical:'sev-critical',high:'sev-high',medium:'sev-medium',low:'sev-low'}[s]||'sev-low';}
+function tsNow(){return new Date().toTimeString().slice(0,8);}
+
+function addAlert(type){
+  const types = Object.keys(DTYPES);
+  const t = type || types[Math.floor(Math.random()*types.length)];
+  const cam = CAMERAS.filter(c=>c.status==='active')[Math.floor(Math.random()*11)];
+  const sev = t==='fight'||t==='stampede'||t==='weapon'?'critical':['high','medium','low'][Math.floor(Math.random()*3)];
+  const scoreMap = {critical:85+~~(Math.random()*15),high:65+~~(Math.random()*20),medium:40+~~(Math.random()*25),low:20+~~(Math.random()*20)};
+  const a = {
+    id:'EVT-'+nextId++,cam:cam.id,type:t,location:cam.name,severity:sev,
+    score:scoreMap[sev],time:tsNow(),zone:cam.zone,lat:cam.lat,lng:cam.lng,
+    tx:genHash(),acked:false,dispatched:false
+  };
+  ALERTS.unshift(a);
+  if(ALERTS.length>30)ALERTS.pop();
+  cam.alerts = Math.min(cam.alerts+1,3);
+  alertCount++;
+  document.getElementById('alert-badge').textContent = Math.min(alertCount,99);
+  document.getElementById('tb-alerts').textContent = alertCount;
+  TIMELINE.unshift({type:'alert',icon:DTYPES[t].icon,color:DTYPES[t].color,title:`${DTYPES[t].label} — ${cam.name}`,desc:`Score ${scoreMap[sev]}/100 · Blockchain anchored`,time:tsNow()});
+  showToast(a);
+  return a;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+function showToast(a) {
+  const container = document.getElementById('toast-container');
+  const dt = DTYPES[a.type];
+  const el = document.createElement('div');
+  el.className = 'toast' + (a.severity==='critical'?' critical':'');
+  el.innerHTML = `
+    <div class="toast-icon">${dt.icon}</div>
+    <div style="flex:1;min-width:0;">
+      <div class="toast-title">${dt.label}</div>
+      <div class="toast-desc">${a.location} · <span class="${sevClass(a.severity)}">${a.severity.toUpperCase()}</span> · ${a.score}/100</div>
+      <div class="toast-time">${a.cam} · ${a.time} · ⛓ anchored</div>
+    </div>
+    <button onclick="this.closest('.toast').remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;margin-top:-2px;">✕</button>`;
+  el.addEventListener('click', () => openAlert(a));
+  container.appendChild(el);
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),300); }, 5500);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAGE SYSTEM
+// ═══════════════════════════════════════════════════════════
+function setPage(p, el) {
+  currentPage = p;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles = {
+    dashboard:'Dashboard Overview',cameras:'Live Camera Feeds',alerts:'Alert Feed',
+    analytics:'Detection Analytics',heatmap:'Incident Heatmap',prediction:'AI Threat Prediction',
+    dispatch:'Officer Dispatch',blockchain:'Blockchain Evidence Log',
+    whatsapp:'WhatsApp Dispatch Log',settings:'System Configuration',triage:'Triage Mode'
+  };
+  document.getElementById('page-title').textContent = titles[p]||p;
+  stopAllAnims();
+  render(p);
+}
+
+function render(p) {
+  const ca = document.getElementById('content-area');
+  switch(p) {
+    case 'dashboard':   ca.innerHTML = renderDashboard(); break;
+    case 'cameras':     ca.innerHTML = renderCameras(); break;
+    case 'alerts':      ca.innerHTML = renderAlerts(); break;
+    case 'analytics':   ca.innerHTML = renderAnalytics(); break;
+    case 'heatmap':     ca.innerHTML = renderHeatmap(); break;
+    case 'prediction':  ca.innerHTML = renderPrediction(); break;
+    case 'dispatch':    ca.innerHTML = renderDispatch(); break;
+    case 'blockchain':  ca.innerHTML = renderBlockchain(); break;
+    case 'whatsapp':    ca.innerHTML = renderWhatsapp(); break;
+    case 'settings':    ca.innerHTML = renderSettings(); break;
+    case 'triage':      openTriageMode(); return;
+    default:            ca.innerHTML = renderDashboard();
+  }
+  afterRender(p);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const active = CAMERAS.filter(c=>c.status==='active').length;
+  const crit = ALERTS.filter(a=>a.severity==='critical').length;
+  const unacked = ALERTS.filter(a=>!a.acked).length;
+  return `
+  <div class="g4">
+    <div class="metric" style="--ml:var(--green)">
+      <div class="metric-label">Active Cameras</div>
+      <div class="metric-value">${active}<span style="font-size:14px;color:var(--text3)">/${CAMERAS.length}</span></div>
+      <div class="metric-sub"><span class="metric-dn">● 1 offline</span></div>
+      <div class="metric-spark"><svg width="60" height="24"><polyline points="0,20 10,15 20,18 30,10 40,14 50,6 60,9" fill="none" stroke="var(--green)" stroke-width="1.5" opacity=".5"/></svg></div>
+    </div>
+    <div class="metric" style="--ml:var(--red)">
+      <div class="metric-label">Critical Alerts</div>
+      <div class="metric-value" style="color:var(--red)">${crit}</div>
+      <div class="metric-sub"><span class="metric-up">↑ 2 from yesterday</span></div>
+      <div class="metric-spark"><svg width="60" height="24"><polyline points="0,18 10,16 20,12 30,14 40,8 50,10 60,4" fill="none" stroke="var(--red)" stroke-width="1.5" opacity=".5"/></svg></div>
+    </div>
+    <div class="metric" style="--ml:var(--amber)">
+      <div class="metric-label">Unacknowledged</div>
+      <div class="metric-value" style="color:var(--amber)">${unacked}</div>
+      <div class="metric-sub">Require operator review</div>
+    </div>
+    <div class="metric" style="--ml:var(--teal)">
+      <div class="metric-label">Blockchain Records</div>
+      <div class="metric-value" style="color:var(--teal)">${alertCount}</div>
+      <div class="metric-sub" style="color:var(--teal)">⛓ 100% anchored</div>
+      <div class="metric-spark"><svg width="60" height="24"><polyline points="0,20 10,18 20,16 30,14 40,12 50,10 60,8" fill="none" stroke="var(--teal)" stroke-width="1.5" opacity=".5"/></svg></div>
+    </div>
+  </div>
+
+  <div class="g2l">
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">🔔 Live Alert Feed</div>
+          <div style="display:flex;gap:6px;">
+            <select id="dash-filter-sev" onchange="filterDashAlerts()" style="font-size:11px;padding:3px 7px;"><option value="">All Severity</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option></select>
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 9px;" onclick="setPage('alerts',null)">View all</button>
+          </div>
+        </div>
+        <div id="dash-alert-feed">
+          ${ALERTS.slice(0,6).map((a,i)=>alertItemHTML(a,i)).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">⏱ Incident Timeline</div></div>
+        <div style="max-height:220px;overflow-y:auto;">
+          ${TIMELINE.slice(0,7).map((t,i)=>timelineItemHTML(t,i)).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">📊 Detection Breakdown</div></div>
+        <div class="chart-wrap">
+          ${Object.entries(DTYPES).map(([k,v])=>{
+            const cnt = ALERTS.filter(a=>a.type===k).length;
+            const pct = Math.round(cnt/Math.max(ALERTS.length,1)*100);
+            return `<div class="bar-row">
+              <div class="bar-label">${k==='stampede'?'Stampede':k==='object'?'Abandoned':v.label.split('/')[0]}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${v.color}">${cnt}</div></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">🚔 Active Dispatches</div></div>
+        ${OFFICERS.filter(o=>o.status!=='standby').map(o=>`
+        <div class="dispatch-item">
+          <div class="dispatch-avatar" style="background:rgba(79,140,255,0.12);">👮</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:600;">${o.name}</div>
+            <div style="font-size:10.5px;color:var(--text2);margin-top:1px;">${o.id} · ${o.target||'Patrol'}</div>
+            ${o.status==='enroute'?`<div class="dispatch-bar"><div class="dispatch-fill" style="width:${Math.max(10,100-o.eta*12)}%"></div></div>`:''}
+          </div>
+          <span class="eta-badge eta-${o.status}">${o.status==='enroute'?`~${o.eta}m`:o.status.toUpperCase()}</span>
+        </div>`).join('')}
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">⛓ Latest Blockchain Anchors</div></div>
+        ${ALERTS.slice(0,3).map(a=>`
+        <div class="block-item">
+          <div class="chain-dot"></div>
+          <div style="min-width:0;flex:1;">
+            <div class="block-hash">${a.tx.slice(0,28)}…</div>
+            <div class="block-meta">${a.id} · ${a.location}</div>
+          </div>
+          <div class="block-time">${a.time}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><div class="panel-title">📷 Camera Grid Status</div></div>
+    <div style="padding:10px;display:grid;grid-template-columns:repeat(6,1fr);gap:7px;">
+      ${CAMERAS.map(c=>`
+      <div style="background:var(--bg4);border:1px solid ${c.status==='offline'?'rgba(240,64,64,0.3)':c.alerts>1?'rgba(240,64,64,0.3)':c.alerts>0?'rgba(245,166,35,0.3)':'var(--border)'};border-radius:8px;padding:8px;cursor:pointer;transition:all .1s;" onclick="setPage('cameras',null)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+          <span style="font-size:9px;font-family:var(--mono);color:var(--text3)">${c.id}</span>
+          <span style="width:5px;height:5px;border-radius:50%;background:${c.status==='offline'?'var(--red)':c.alerts>0?'var(--amber)':'var(--green)'}"></span>
+        </div>
+        <div style="font-size:10px;font-weight:600;color:${c.status==='offline'?'var(--text3)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name.split(' ').slice(0,2).join(' ')}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px;">${c.status==='offline'?'OFFLINE':c.fps+' fps'}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function filterDashAlerts() {
+  const sev = document.getElementById('dash-filter-sev').value;
+  const filtered = sev ? ALERTS.filter(a=>a.severity===sev) : ALERTS;
+  document.getElementById('dash-alert-feed').innerHTML = filtered.slice(0,6).map((a,i)=>alertItemHTML(a,i)).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: CAMERAS
+// ═══════════════════════════════════════════════════════════
+function renderCameras() {
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">📷 Live Feeds (${CAMERAS.filter(c=>c.status==='active').length} active)</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="proc-bar" style="width:100px;align-self:center;"><div class="proc-fill"></div></div>
+        <span style="font-size:11px;color:var(--accent);">YOLOv8 inference</span>
+        <select id="cam-filter" onchange="applyCamFilter()" style="font-size:11px;">
+          <option value="">All Zones</option>
+          ${[...new Set(CAMERAS.map(c=>c.zone))].map(z=>`<option value="${z}">${z}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="cam-grid" id="cam-grid-inner">
+      ${CAMERAS.map(camCardHTML).join('')}
+    </div>
+  </div>`;
+}
+
+function applyCamFilter() {
+  const z = document.getElementById('cam-filter').value;
+  const filtered = z ? CAMERAS.filter(c=>c.zone===z) : CAMERAS;
+  document.getElementById('cam-grid-inner').innerHTML = filtered.map(camCardHTML).join('');
+  stopAllAnims();
+  filtered.forEach(c=>{ if(c.status==='active') setTimeout(()=>startCanvasAnim(c.id,c.alerts>0,false),50); });
+}
+
+function camCardHTML(c) {
+  const hasAlert = c.alerts>0;
+  const crit = c.alerts>1;
+  const off = c.status==='offline';
+  return `<div class="cam-card ${crit?'crit-alert':hasAlert?'high-alert':''}" onclick="camClick('${c.id}')">
+    <div class="cam-feed">
+      <canvas id="canvas-${c.id}" style="width:100%;height:100%;display:block;${off?'opacity:.25':''}"></canvas>
+      <div class="cam-overlay">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="cam-id-tag">${c.id}</div>
+          ${hasAlert&&!off?`<div style="background:${crit?'var(--red)':'var(--amber)'};color:#fff;font-size:8.5px;font-family:var(--mono);padding:2px 6px;border-radius:4px;animation:blink 1s infinite">${crit?'CRITICAL':'ALERT'}</div>`:''}
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <div class="rec-dot"><span style="width:4px;height:4px;border-radius:50%;background:${off?'var(--red)':'var(--green)'}"></span>${off?'OFFLINE':c.fps+' FPS'}</div>
+          ${!off?'<div class="rec-dot">H.264</div>':''}
+          ${c.ptz&&!off?'<div class="rec-dot">PTZ</div>':''}
+        </div>
+      </div>
+      ${hasAlert&&!off?`<div style="position:absolute;top:15%;left:20%;width:22%;height:48%;border:1.5px solid var(--amber);border-radius:3px;font-size:7.5px;font-family:var(--mono);color:var(--amber);padding:1px 4px;background:rgba(245,166,35,0.08);pointer-events:none">LOITER</div>`:''}
+      ${c.ptz&&!off?`<div class="ptz-panel" onclick="event.stopPropagation()">
+        <div class="ptz-btn" title="Pan Left">◀</div>
+        <div class="ptz-btn" title="Tilt Up">▲</div>
+        <div class="ptz-btn" title="Tilt Down">▼</div>
+        <div class="ptz-btn" title="Pan Right">▶</div>
+        <div class="ptz-btn" title="Zoom In" style="font-size:11px;">+</div>
+        <div class="ptz-btn" title="Zoom Out" style="font-size:11px;">−</div>
+      </div>`:''}
+    </div>
+    <div class="cam-foot">
+      <div>
+        <div class="cam-name">${c.name}</div>
+        <div class="cam-zone">${c.zone} · ${c.alerts>0?c.alerts+' alert(s)':'Clear'}</div>
+      </div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        ${hasAlert?`<span class="sev ${crit?'sev-critical':'sev-high'}" style="font-size:9px;">${crit?'CRIT':'HIGH'}</span>`:''}
+        <span class="tag tag-teal" style="font-size:9px;">${off?'OFFLINE':'LIVE'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: ALERTS
+// ═══════════════════════════════════════════════════════════
+function renderAlerts() {
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">🔔 Alert Feed</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <input type="text" id="alert-search" placeholder="Search…" oninput="filterAlerts()" style="width:130px;"/>
+        <select id="alert-sev" onchange="filterAlerts()">
+          <option value="">All Severity</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+        </select>
+        <select id="alert-type" onchange="filterAlerts()">
+          <option value="">All Types</option>${Object.entries(DTYPES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}
+        </select>
+        <select id="alert-status" onchange="filterAlerts()">
+          <option value="">All Status</option><option value="unacked">Unacknowledged</option><option value="acked">Acknowledged</option>
+        </select>
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 9px;" onclick="acknowledgeAll()">✓ Ack All</button>
+      </div>
+    </div>
+    <div id="alert-list-body">
+      ${ALERTS.map((a,i)=>alertItemHTML(a,i)).join('')}
+    </div>
+  </div>`;
+}
+
+function filterAlerts() {
+  const q = (document.getElementById('alert-search').value||'').toLowerCase();
+  const sev = document.getElementById('alert-sev').value;
+  const type = document.getElementById('alert-type').value;
+  const status = document.getElementById('alert-status').value;
+  const filtered = ALERTS.filter(a=>{
+    if(q && !a.location.toLowerCase().includes(q) && !a.id.toLowerCase().includes(q) && !a.type.includes(q)) return false;
+    if(sev && a.severity!==sev) return false;
+    if(type && a.type!==type) return false;
+    if(status==='unacked' && a.acked) return false;
+    if(status==='acked' && !a.acked) return false;
+    return true;
+  });
+  document.getElementById('alert-list-body').innerHTML = filtered.map((a,i)=>alertItemHTML(a,i)).join('') ||
+    '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;">No alerts match filters</div>';
+}
+
+function acknowledgeAll() {
+  ALERTS.forEach(a=>a.acked=true);
+  document.getElementById('alert-badge').textContent='0';
+  render('alerts');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: ANALYTICS
+// ═══════════════════════════════════════════════════════════
+function renderAnalytics() {
+  const hourlyData = [2,1,0,0,1,3,5,8,6,7,4,5,9,11,8,7,12,15,10,8,6,9,7,4];
+  const zoneData = {};
+  CAMERAS.forEach(c=>{ zoneData[c.zone]=(zoneData[c.zone]||0)+c.alerts; });
+  return `
+  <div class="g4">
+    ${[
+      {label:'Total Detections',val:alertCount,sub:'Last 24h',ml:'var(--accent)'},
+      {label:'Avg Response Time',val:'4.2m',sub:'PCR Van ETA',ml:'var(--green)'},
+      {label:'Blockchain Uptime',val:'100%',sub:'All records anchored',ml:'var(--teal)'},
+      {label:'False Positive Rate',val:'3.1%',sub:'vs 8.4% industry avg',ml:'var(--purple)'},
+    ].map(m=>`<div class="metric" style="--ml:${m.ml}">
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-value" style="color:${m.ml}">${m.val}</div>
+      <div class="metric-sub">${m.sub}</div>
+    </div>`).join('')}
+  </div>
+
+  <div class="g2">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">📈 Hourly Incident Volume (Today)</div></div>
+      <div style="padding:16px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:80px;">
+          ${hourlyData.map((v,i)=>{
+            const max=Math.max(...hourlyData);
+            const h=Math.round(v/max*76)+4;
+            const isNow=i===new Date().getHours();
+            return `<div style="flex:1;height:${h}px;border-radius:2px 2px 0 0;background:${isNow?'var(--accent)':'rgba(79,140,255,0.35)'};position:relative;cursor:default;" title="${i}:00 — ${v} events"></div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9px;font-family:var(--mono);color:var(--text3);">
+          <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">📊 Severity Distribution</div></div>
+      <div style="padding:16px;">
+        ${[
+          {label:'Critical',sev:'critical',color:'var(--red)'},
+          {label:'High',sev:'high',color:'var(--amber)'},
+          {label:'Medium',sev:'medium',color:'var(--accent)'},
+          {label:'Low',sev:'low',color:'var(--green)'},
+        ].map(r=>{
+          const cnt=ALERTS.filter(a=>a.severity===r.sev).length;
+          const pct=Math.round(cnt/Math.max(ALERTS.length,1)*100);
+          return `<div class="bar-row">
+            <div class="bar-label">${r.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${r.color}">${cnt} (${pct}%)</div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">🗺 Incidents by Zone</div></div>
+      <div style="padding:16px;">
+        ${Object.entries(zoneData).sort(([,a],[,b])=>b-a).map(([zone,cnt])=>{
+          const max=Math.max(...Object.values(zoneData),1);
+          const pct=Math.round(cnt/max*100);
+          return `<div class="bar-row">
+            <div class="bar-label">${zone}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--purple)">${cnt}</div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">🏆 Top Incident Cameras</div></div>
+      <div style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+        ${CAMERAS.sort((a,b)=>b.alerts-a.alerts).slice(0,5).map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg4);border-radius:8px;border:1px solid var(--border);">
+          <div style="width:22px;height:22px;border-radius:6px;background:rgba(79,140,255,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:var(--mono);color:var(--accent);">${i+1}</div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:600">${c.name}</div>
+            <div style="font-size:10px;color:var(--text3)">${c.id} · ${c.zone}</div>
+          </div>
+          <span class="sev ${c.alerts>1?'sev-critical':c.alerts>0?'sev-high':'sev-low'}">${c.alerts} alert${c.alerts!==1?'s':''}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: HEATMAP
+// ═══════════════════════════════════════════════════════════
+function renderHeatmap() {
+  const dots = CAMERAS.map((c,i)=>{
+    const cols = 6, row = Math.floor(i/cols), col = i%cols;
+    const x = 80 + col*95;
+    const y = 65 + row*160;
+    const r = c.alerts>1?22:c.alerts===1?14:6;
+    const fill = c.alerts>1?'rgba(240,64,64,0.3)':c.alerts===1?'rgba(245,166,35,0.25)':'rgba(38,208,124,0.15)';
+    const stroke = c.alerts>1?'#f04040':c.alerts===1?'#f5a623':'#26d07c';
+    return {...c,x,y,r,fill,stroke};
+  });
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">🗺 Thane City — Incident Heatmap</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="tag tag-teal">Live · ${CAMERAS.filter(c=>c.alerts>0).length} active zones</span>
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Updated ${tsNow()}</span>
+      </div>
+    </div>
+    <div style="padding:16px;">
+      <svg viewBox="0 0 680 420" width="100%" style="background:var(--bg4);border-radius:10px;border:1px solid var(--border);">
+        <defs>
+          <radialGradient id="h1"><stop offset="0%" stop-color="#f04040" stop-opacity=".55"/><stop offset="100%" stop-color="#f04040" stop-opacity="0"/></radialGradient>
+          <radialGradient id="h2"><stop offset="0%" stop-color="#f5a623" stop-opacity=".45"/><stop offset="100%" stop-color="#f5a623" stop-opacity="0"/></radialGradient>
+          <radialGradient id="h3"><stop offset="0%" stop-color="#4f8cff" stop-opacity=".15"/><stop offset="100%" stop-color="#4f8cff" stop-opacity="0"/></radialGradient>
+        </defs>
+        <!-- Grid -->
+        ${Array.from({length:7},(_,i)=>`<line x1="${80+i*90}" y1="20" x2="${80+i*90}" y2="400" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
+        ${Array.from({length:5},(_,i)=>`<line x1="40" y1="${40+i*80}" x2="640" y2="${40+i*80}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
+        <text x="340" y="16" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.25)" font-family="IBM Plex Mono, monospace">THANE MUNICIPAL — LIVE THREAT MAP</text>
+        <!-- Heat blobs -->
+        ${dots.filter(d=>d.alerts>1).map(d=>`<ellipse cx="${d.x}" cy="${d.y}" rx="60" ry="45" fill="url(#h1)"/>`).join('')}
+        ${dots.filter(d=>d.alerts===1).map(d=>`<ellipse cx="${d.x}" cy="${d.y}" rx="44" ry="34" fill="url(#h2)"/>`).join('')}
+        ${dots.map(d=>`<ellipse cx="${d.x}" cy="${d.y}" rx="28" ry="22" fill="url(#h3)"/>`).join('')}
+        <!-- Camera dots -->
+        ${dots.map(d=>`
+          <g onclick="event.stopPropagation()" style="cursor:pointer;">
+            ${d.alerts>0?`<circle cx="${d.x}" cy="${d.y}" r="10" fill="${d.stroke}" opacity="0" class="pring"><animate attributeName="r" values="10;26;10" dur="2.3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.55;0;0.55" dur="2.3s" repeatCount="indefinite"/></circle>`:''}
+            <circle cx="${d.x}" cy="${d.y}" r="${d.r}" fill="${d.fill}" stroke="${d.stroke}" stroke-width="1.5"/>
+            <text x="${d.x}" y="${d.y+3}" text-anchor="middle" font-size="8" fill="${d.stroke}" font-family="IBM Plex Mono, monospace">${d.alerts>0?d.alerts:'✓'}</text>
+            <text x="${d.x}" y="${d.y+17}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.4)" font-family="IBM Plex Mono, monospace">${d.id}</text>
+          </g>`).join('')}
+        <!-- Legend -->
+        <rect x="510" y="350" width="155" height="58" rx="6" fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <circle cx="525" cy="363" r="5" fill="rgba(240,64,64,.45)" stroke="#f04040" stroke-width="1"/><text x="536" y="367" font-size="9" fill="rgba(255,255,255,.45)" font-family="IBM Plex Mono, monospace">Critical / Multiple Alerts</text>
+        <circle cx="525" cy="378" r="5" fill="rgba(245,166,35,.4)" stroke="#f5a623" stroke-width="1"/><text x="536" y="382" font-size="9" fill="rgba(255,255,255,.45)" font-family="IBM Plex Mono, monospace">Active Alert</text>
+        <circle cx="525" cy="393" r="5" fill="rgba(38,208,124,.2)" stroke="#26d07c" stroke-width="1"/><text x="536" y="397" font-size="9" fill="rgba(255,255,255,.45)" font-family="IBM Plex Mono, monospace">Clear</text>
+      </svg>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: AI PREDICTION
+// ═══════════════════════════════════════════════════════════
+function renderPrediction() {
+  const predictions = [
+    {zone:'Station',cam:'CAM-001',risk:89,time:'Next 30 min',reason:'High foot traffic + recent fight history + evening rush overlap',type:'fight'},
+    {zone:'Market',cam:'CAM-010',risk:72,time:'Next 1 hour',reason:'Weekend crowd pattern + 2 prior loitering events this week',type:'crowd'},
+    {zone:'Junction',cam:'CAM-003',risk:61,time:'Next 2 hours',reason:'Historical loitering pattern at this time window',type:'loiter'},
+    {zone:'Industrial',cam:'CAM-006',risk:44,time:'Tonight',reason:'Low-light conditions + isolated zone + past abandoned object events',type:'object'},
+  ];
+  return `
+  <div class="panel" style="background:rgba(79,140,255,0.03);border-color:rgba(79,140,255,0.12);">
+    <div class="panel-head">
+      <div class="panel-title" style="color:var(--accent);">🧠 AI Threat Prediction Engine</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="tag tag-purple">GPT-4 Pattern Analysis</span>
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Updated ${tsNow()}</span>
+      </div>
+    </div>
+    <div style="padding:14px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);background:rgba(79,140,255,0.04);">
+      Predictions are generated by analyzing historical incident patterns, current crowd density, time-of-day baselines, weather data, and event calendars. Confidence scores reflect model certainty.
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+      ${predictions.map(p=>{
+        const col = p.risk>=80?'var(--red)':p.risk>=60?'var(--amber)':'var(--accent)';
+        return `<div style="background:var(--bg4);border:1px solid ${p.risk>=80?'rgba(240,64,64,0.2)':p.risk>=60?'rgba(245,166,35,0.2)':'var(--border)'};border-radius:10px;padding:14px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:rgba(${p.risk>=80?'240,64,64':p.risk>=60?'245,166,35':'79,140,255'},0.12);border:2px solid ${col};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:16px;font-family:var(--display);font-weight:800;color:${col}">${p.risk}</span>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:700;font-family:var(--display);">${p.zone} Zone — ${DTYPES[p.type].label} Risk</div>
+              <div style="font-size:11px;color:var(--text2);margin-top:2px;">${p.cam} · Predicted within: <strong style="color:${col}">${p.time}</strong></div>
+            </div>
+            <span class="tag ${p.risk>=80?'tag-pink':p.risk>=60?'tag-amber':'tag-green'}">${p.risk>=80?'HIGH RISK':p.risk>=60?'MODERATE':'LOW'}</span>
+          </div>
+          <div style="background:rgba(0,0,0,0.2);border-radius:7px;padding:9px 12px;font-size:11.5px;color:var(--text2);line-height:1.5;">
+            <span style="color:var(--text3);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Risk Factors: </span>${p.reason}
+          </div>
+          <div style="margin-top:9px;display:flex;gap:6px;">
+            <div style="flex:1;height:4px;background:var(--bg5);border-radius:2px;overflow:hidden;align-self:center;">
+              <div style="height:100%;width:${p.risk}%;background:${col};border-radius:2px;"></div>
+            </div>
+            <span style="font-family:var(--mono);font-size:10px;color:${col};">${p.risk}% confidence</span>
+            <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px;" onclick="preDeployOfficer('${p.cam}')">Pre-deploy officer</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function preDeployOfficer(cam) {
+  showToast({type:'object',severity:'medium',score:0,location:'Pre-deployment order',cam,id:'SYS',time:tsNow()});
+  alert(`✅ Pre-deployment order sent\nOfficer in standby mode re-assigned to ${cam} patrol.\nETA: 8 minutes`);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: DISPATCH
+// ═══════════════════════════════════════════════════════════
+function renderDispatch() {
+  return `
+  <div class="g2">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">🚔 Officer Status Board</div>
+        <button class="btn btn-primary" style="font-size:11px;" onclick="dispatchPolice()">+ New Dispatch</button>
+      </div>
+      ${OFFICERS.map(o=>`
+      <div class="dispatch-item">
+        <div class="dispatch-avatar" style="background:rgba(79,140,255,0.1);font-size:18px;">👮</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;">${o.name}</div>
+          <div style="font-size:10.5px;color:var(--text2);margin-top:1px;">${o.id} · ${o.target?'Assigned: '+o.target:'Available'}</div>
+          ${o.status==='enroute'?`<div class="dispatch-bar" style="margin-top:5px;"><div class="dispatch-fill" style="width:${Math.max(5,100-o.eta*12)}%"></div></div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="eta-badge eta-${o.status}">${o.status==='enroute'?`ETA ~${o.eta}m`:o.status.toUpperCase()}</span>
+          ${o.target?`<button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;" onclick="openAlertById('${o.target}')">View Alert</button>`:''}
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">📞 Communication Log</div></div>
+        <div style="padding:12px;display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
+          ${[
+            {time:'14:32:15',from:'Control Room',msg:'PCR-007 dispatched to Thane Station East. Fight/aggression alert.',type:'dispatch'},
+            {time:'14:22:01',from:'PCR-012',msg:'On scene at Thane Station East. Situation contained. Evidence collected.',type:'onscene'},
+            {time:'14:11:40',from:'Control Room',msg:'PCR-009 en route to Vartak Nagar Market. Crowd density alert.',type:'dispatch'},
+            {time:'13:45:00',from:'PCR-003',msg:'Patrol complete. Kopri Naka and Teen Haath Naka — all clear.',type:'clear'},
+          ].map(m=>`
+          <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:9px 12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:600;color:${m.type==='dispatch'?'var(--accent)':m.type==='onscene'?'var(--green)':'var(--text2)'}">${m.from}</span>
+              <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">${m.time}</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--text2)">${m.msg}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">📊 Dispatch Stats Today</div></div>
+        <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          ${[
+            {label:'Total Dispatches',val:'6',col:'var(--accent)'},
+            {label:'Avg ETA',val:'4.2m',col:'var(--green)'},
+            {label:'Incidents Resolved',val:'4',col:'var(--green)'},
+            {label:'Pending Response',val:'2',col:'var(--amber)'},
+          ].map(s=>`<div style="background:var(--bg4);border-radius:8px;padding:10px;border:1px solid var(--border);">
+            <div style="font-size:9.5px;color:var(--text3);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;">${s.label}</div>
+            <div style="font-size:22px;font-weight:800;font-family:var(--display);color:${s.col}">${s.val}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: BLOCKCHAIN
+// ═══════════════════════════════════════════════════════════
+function renderBlockchain() {
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">⛓ Algorand Blockchain Evidence Log</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="tag tag-teal">Algorand Mainnet</span>
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${ALERTS.length} records · 100% confirmed</span>
+        <button class="btn btn-ghost" style="font-size:11px;" onclick="exportBlockchain()">⬇ Export CSV</button>
+      </div>
+    </div>
+    <div style="padding:14px;background:rgba(34,211,238,0.04);border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);">
+      Every detection event is cryptographically hashed (SHA-256) and submitted to the Algorand blockchain within 2 seconds. Transaction IDs are <strong style="color:var(--teal)">tamper-proof and court-admissible</strong> under the Indian Evidence (Amendment) Act.
+    </div>
+    ${ALERTS.map(a=>`
+    <div class="block-item">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:3px;">
+        <div class="chain-dot"></div>
+        <div style="width:1px;height:18px;background:rgba(34,211,238,0.15)"></div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
+          <span style="font-size:12px;font-weight:700;font-family:var(--display)">${a.id}</span>
+          <span class="sev ${sevClass(a.severity)}">${a.severity}</span>
+          <span>${DTYPES[a.type].icon}</span>
+          ${a.acked?'<span class="tag tag-green">✓ acked</span>':''}
+        </div>
+        <div class="block-hash" style="margin-bottom:2px;">TX: ${a.tx}</div>
+        <div class="block-meta">${a.location} · ${a.cam} · <span style="color:var(--teal)">CONFIRMED on-chain</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="block-time">${a.time}</div>
+        <button class="btn btn-ghost" style="font-size:10px;padding:2px 7px;" onclick='openAlert(${JSON.stringify(a)})'>View</button>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: WHATSAPP
+// ═══════════════════════════════════════════════════════════
+function renderWhatsapp() {
+  const msgs = ALERTS.slice(0,5).map(a=>({
+    status: a.acked?'delivered':'sent',
+    time: a.time,
+    cam: a.cam,
+    type: a.type,
+    msg: `${a.severity==='critical'?'🚨':'⚠'} *CRIMEEYE ALERT*\n${DTYPES[a.type].label}\nLocation: ${a.location}\nSeverity: ${a.severity.toUpperCase()} (${a.score}/100)\nCamera: ${a.cam}\nGPS: ${a.lat.toFixed(3)}°N ${a.lng.toFixed(3)}°E\nTX: ${a.tx.slice(0,20)}…\nEvidence clip attached.`
+  }));
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">💬 Twilio WhatsApp Dispatch</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="dot dot-green"></div>
+        <span style="font-size:11px;color:var(--green)">Twilio API connected</span>
+        <button class="btn btn-ghost" style="font-size:11px;" onclick="sendTestWhatsapp()">📨 Test Message</button>
+      </div>
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:12px;">
+      ${msgs.map(m=>`
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <div class="dot ${m.status==='delivered'?'dot-green':'dot-amber'}" style="margin-top:8px;"></div>
+        <div style="flex:1;">
+          <div class="wa-bubble"><div class="wa-text">${m.msg}</div></div>
+          <div class="wa-status">
+            <span>${m.status==='delivered'?'✓✓':'✓'}</span>
+            <span style="font-family:var(--mono);font-size:9.5px;">${m.time} · ${m.cam} · ${m.status.toUpperCase()}</span>
+            <span class="tag tag-teal">Nearest PCR notified</span>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: SETTINGS
+// ═══════════════════════════════════════════════════════════
+function renderSettings() {
+  return `
+  <div class="g2">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">🤖 Detection Thresholds</div></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+          ${[
+            {key:'loiterThresh',label:'Loitering Timer',unit:'seconds',min:30,max:600,step:10},
+            {key:'crowdThresh',label:'Crowd Density Threshold',unit:'persons',min:5,max:100,step:5},
+            {key:'confThresh',label:'Min Confidence Score',unit:'%',min:30,max:95,step:5},
+            {key:'recordLoop',label:'Ring Buffer Duration',unit:'seconds',min:10,max:120,step:10},
+          ].map(s=>`
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:12px;font-weight:500">${s.label}</span>
+              <span class="threshold-val" id="val-${s.key}">${SETTINGS_STATE[s.key]} ${s.unit}</span>
+            </div>
+            <input type="range" class="slider-input" min="${s.min}" max="${s.max}" step="${s.step}" value="${SETTINGS_STATE[s.key]}"
+              oninput="SETTINGS_STATE['${s.key}']=this.value;document.getElementById('val-${s.key}').textContent=this.value+' ${s.unit}'"/>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">⚙ System Configuration</div></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:6px;">
+          ${[
+            ['autoDispatch','Auto-dispatch on Critical alerts','Automatically calls nearest PCR when severity=critical'],
+            ['blockchainAuto','Auto-anchor to Algorand','Submit all events to blockchain immediately'],
+            ['whatsappAuto','Auto WhatsApp alerts','Send Twilio messages for high/critical events'],
+            ['faceBlur','Privacy face blurring','GDPR-compliant blur on non-suspects'],
+            ['soundAlerts','Audible alerts','Play alert sound on critical events'],
+            ['nightMode','Night vision enhancement','IR-assisted image processing after 22:00'],
+          ].map(([key,label,desc])=>`
+          <div class="setting-row">
+            <div style="flex:1;">
+              <div style="font-size:12.5px;font-weight:500">${label}</div>
+              <div style="font-size:10.5px;color:var(--text3);margin-top:2px;">${desc}</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" ${SETTINGS_STATE[key]?'checked':''} onchange="SETTINGS_STATE['${key}']=this.checked">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">🧠 AI Model Info</div></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:6px;">
+          ${[
+            ['Detection Model','YOLOv8n · 640px input','Active','teal'],
+            ['Tracking','DeepSORT · max_age=30','Active','teal'],
+            ['Pose Estimation','MediaPipe Pose · conf=0.7','Active','teal'],
+            ['Fight Classifier','Custom CNN · 8 classes','Active','teal'],
+            ['Crowd Analysis','Density estimation + CSRNET','Active','teal'],
+            ['Prediction Engine','LSTM + historical patterns','Active','purple'],
+          ].map(([name,val,status,col])=>`
+          <div style="background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;">
+            <div style="flex:1;">
+              <div style="font-size:12.5px;font-weight:500">${name}</div>
+              <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;">${val}</div>
+            </div>
+            <span class="tag tag-${col}">${status}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">💾 Storage & Export</div></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+          ${[
+            {label:'Evidence Database',val:'PostgreSQL',sub:'2.4 GB used / 100 GB quota'},
+            {label:'Video Archive (S3)',val:'AWS S3',sub:'14.7 GB · 30-day retention'},
+            {label:'Blockchain Records',val:'Algorand',sub:`${alertCount} records anchored`},
+          ].map(s=>`<div style="background:var(--bg4);border-radius:8px;padding:10px 12px;border:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font-size:12px;font-weight:500">${s.label}</span>
+              <span class="tag tag-teal">${s.val}</span>
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:3px;">${s.sub}</div>
+          </div>`).join('')}
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <button class="btn btn-ghost" style="flex:1;font-size:11px;" onclick="exportBlockchain()">⬇ Export Blockchain CSV</button>
+            <button class="btn btn-ghost" style="flex:1;font-size:11px;" onclick="alert('Evidence archive download started')">⬇ Download Evidence</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPER: ALERT ITEM HTML
+// ═══════════════════════════════════════════════════════════
+function alertItemHTML(a, idx) {
+  const dt = DTYPES[a.type];
+  const fillCol = {critical:'var(--red)',high:'var(--amber)',medium:'var(--accent)',low:'var(--green)'}[a.severity];
+  const iconBg = {fight:'rgba(240,64,64,0.13)',loiter:'rgba(245,166,35,0.13)',crowd:'rgba(176,111,245,0.13)',object:'rgba(79,140,255,0.13)',stampede:'rgba(240,64,64,0.18)',weapon:'rgba(240,64,64,0.2)'}[a.type]||'var(--bg4)';
+  return `<div class="alert-item${idx===0?' fresh':''}${a.acked?' acknowledged':''}" onclick='openAlert(${JSON.stringify(a)})'>
+    <div class="alert-icon" style="background:${iconBg}">${dt.icon}</div>
+    <div class="alert-content">
+      <div class="alert-title">${dt.label} — ${a.location}</div>
+      <div class="alert-meta">
+        <span>📷 ${a.cam}</span>
+        <span>📍 ${a.zone}</span>
+        <span class="sev ${sevClass(a.severity)}">${a.severity.toUpperCase()}</span>
+        <span class="tag tag-teal">⛓ anchored</span>
+        ${a.acked?'<span class="tag tag-green">✓ acked</span>':''}
+        ${a.dispatched?'<span class="tag tag-purple">🚔 dispatched</span>':''}
+      </div>
+      <div class="score-bar"><div class="score-fill" style="width:${a.score}%;background:${fillCol}"></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3)">${a.time}</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--text3)">${a.score}/100</div>
+    </div>
+  </div>`;
+}
+
+function timelineItemHTML(t, idx) {
+  const isLast = idx === TIMELINE.length-1;
+  return `<div class="timeline-item">
+    ${!isLast?'<div class="timeline-line"></div>':''}
+    <div class="tl-icon" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);color:${t.color}">${t.icon}</div>
+    <div class="tl-content">
+      <div class="tl-title">${t.title}</div>
+      <div class="tl-desc">${t.desc}</div>
+    </div>
+    <div class="tl-time">${t.time}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TRIAGE MODE
+// ═══════════════════════════════════════════════════════════
+function openTriageMode() {
+  const overlay = document.getElementById('triage-overlay');
+  const body = document.getElementById('triage-body');
+  const active = ALERTS.filter(a=>!a.acked).slice(0,6);
+  document.getElementById('triage-count').textContent = `${active.length} active incidents`;
+  body.innerHTML = active.map((a,i)=>{
+    const dt = DTYPES[a.type];
+    return `<div class="triage-cell">
+      <canvas id="triage-canvas-${i}" style="width:100%;height:100%;display:block;"></canvas>
+      <div class="triage-info">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-size:14px">${dt.icon}</span>
+          <span style="font-size:12px;font-weight:700;font-family:var(--display)">${dt.label}</span>
+          <span class="sev ${sevClass(a.severity)}">${a.severity}</span>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.65);">${a.location} · ${a.cam} · ${a.time}</div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="btn btn-danger" style="font-size:10.5px;padding:4px 10px;" onclick="dispatchToAlert('${a.id}')">🚔 Dispatch</button>
+          <button class="btn btn-success" style="font-size:10.5px;padding:4px 10px;" onclick="ackInTriage('${a.id}',${i})">✓ Acknowledge</button>
+          <button class="btn btn-ghost" style="font-size:10.5px;padding:4px 10px;" onclick='openAlert(${JSON.stringify(a)})'>Detail</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="padding:40px;text-align:center;color:var(--text3);font-size:14px;grid-column:span 3;">✓ No active unacknowledged incidents</div>';
+  overlay.classList.add('open');
+  active.forEach((a,i)=>{
+    setTimeout(()=>startCanvasAnim('triage-canvas-'+i, true, false, a.type), 100);
+  });
+}
+
+function closeTriageMode() {
+  document.getElementById('triage-overlay').classList.remove('open');
+}
+
+function ackInTriage(id, idx) {
+  const a = ALERTS.find(a=>a.id===id);
+  if(a) a.acked=true;
+  const cell = document.querySelector(`#triage-canvas-${idx}`)?.closest('.triage-cell');
+  if(cell) cell.style.opacity='0.35';
+}
+
+function dispatchToAlert(id) {
+  const a = ALERTS.find(a=>a.id===id);
+  if(a) { a.dispatched=true; alert(`🚔 PCR dispatched to ${a.location}\nETA: ~${3+Math.floor(Math.random()*6)} minutes`); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════
+function openAlert(a) {
+  if(typeof a==='string') a=JSON.parse(a);
+  currentAlert = a;
+  const dt = DTYPES[a.type];
+  document.getElementById('modal-title').textContent = `${dt.icon} ${dt.label} — ${a.id}`;
+  document.getElementById('modal-pills').innerHTML = `
+    <span class="sev ${sevClass(a.severity)}">${a.severity.toUpperCase()}</span>
+    <span class="sev sev-medium">${a.score}/100</span>
+    <span class="tag tag-teal">⛓ anchored</span>
+    ${a.acked?'<span class="tag tag-green">✓ acknowledged</span>':''}
+    ${a.dispatched?'<span class="tag tag-purple">🚔 dispatched</span>':''}`;
+  document.getElementById('modal-fields').innerHTML = [
+    ['Camera',a.cam],['Location',a.location],['Time',a.time],
+    ['Zone',a.zone],['GPS',`${a.lat.toFixed(3)}°N ${a.lng.toFixed(3)}°E`],['Score',a.score+'/100'],
+  ].map(([l,v])=>`<div class="mf"><div class="mf-label">${l}</div><div class="mf-value">${v}</div></div>`).join('');
+  document.getElementById('modal-hash').textContent = `TX: ${a.tx}\nNetwork: Algorand Mainnet\nStatus: CONFIRMED · Court-Admissible\nTimestamp: ${new Date().toISOString()}`;
+  document.getElementById('modal-ai').innerHTML = `
+    <div class="ai-header">🤖 AI Analysis — ${dt.label}</div>
+    <div class="ai-text">${dt.aiDesc}</div>
+    ${[
+      ['Detection Confidence',a.score],
+      ['Threat Level',Math.min(100,a.score+5)],
+      ['Model Certainty',82+Math.floor(Math.random()*15)],
+    ].map(([l,v])=>`<div class="confidence-row">
+      <div class="confidence-label">${l}</div>
+      <div class="confidence-track"><div class="confidence-fill" style="width:${v}%;background:${v>=80?'var(--red)':v>=60?'var(--amber)':'var(--accent)'}"></div></div>
+      <div class="confidence-val">${v}%</div>
+    </div>`).join('')}`;
+  document.getElementById('modal-det-tags').innerHTML = [
+    `<span style="background:rgba(0,0,0,0.65);color:var(--red);font-size:8.5px;font-family:var(--mono);padding:2px 6px;border-radius:4px;border:1px solid rgba(240,64,64,0.3)">${dt.label.toUpperCase()}</span>`,
+    `<span style="background:rgba(0,0,0,0.65);color:var(--accent);font-size:8.5px;font-family:var(--mono);padding:2px 6px;border-radius:4px;border:1px solid rgba(79,140,255,0.3)">PERSON × ${2+Math.floor(Math.random()*4)}</span>`,
+    `<span style="background:rgba(0,0,0,0.65);color:var(--teal);font-size:8.5px;font-family:var(--mono);padding:2px 6px;border-radius:4px;border:1px solid rgba(34,211,238,0.3)">DEEPTRACK #${100+Math.floor(Math.random()*50)}</span>`,
+  ].join('');
+  document.getElementById('alert-modal').classList.add('open');
+  // Modal canvas animation
+  const mc = document.getElementById('modal-canvas');
+  let mf = 0;
+  function drawModal() {
+    const W = mc.width = mc.offsetWidth||540;
+    const H = mc.height = mc.offsetHeight||280;
+    const ctx = mc.getContext('2d');
+    ctx.fillStyle='#060810';ctx.fillRect(0,0,W,H);
+    for(let y=0;y<H;y+=2){ctx.fillStyle='rgba(255,255,255,0.008)';ctx.fillRect(0,y,W,1);}
+    // noise
+    for(let i=0;i<40;i++){ctx.fillStyle=`rgba(255,255,255,${Math.random()*.03})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2,Math.random()*2);}
+    // detection box
+    const blink = mf%30<15;
+    ctx.strokeStyle = blink?'#f04040':'rgba(240,64,64,0.4)';
+    ctx.lineWidth=2;
+    ctx.setLineDash(blink?[]:[4,3]);
+    ctx.strokeRect(W*.25,H*.1,W*.28,H*.72);
+    ctx.setLineDash([]);
+    ctx.font='8px IBM Plex Mono, monospace';ctx.fillStyle=blink?'#f04040':'rgba(240,64,64,0.4)';
+    ctx.fillText(dt.label.toUpperCase(),W*.25,H*.09);
+    // second person box
+    ctx.strokeStyle='rgba(79,140,255,0.5)';ctx.lineWidth=1;
+    ctx.strokeRect(W*.56,H*.25,W*.18,H*.55);
+    ctx.fillStyle='rgba(79,140,255,0.5)';ctx.font='7px IBM Plex Mono, monospace';
+    ctx.fillText('PERSON',W*.56,H*.24);
+    // REC
+    ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='9px IBM Plex Mono, monospace';
+    ctx.fillText(a.time+'.'+(mf%99).toString().padStart(2,'0'),W-88,H-6);
+    ctx.fillText(a.cam,8,H-6);
+    // grid overlay
+    ctx.strokeStyle='rgba(255,255,255,0.025)';ctx.lineWidth=1;
+    for(let x=0;x<W;x+=36)ctx.strokeRect(x,0,36,H);
+    mf++;
+    if(document.getElementById('alert-modal').classList.contains('open'))
+      requestAnimationFrame(drawModal);
+  }
+  drawModal();
+}
+
+function openAlertById(id) {
+  const a = ALERTS.find(a=>a.id===id);
+  if(a) openAlert(a);
+}
+
+function maybeCloseModal(e) {
+  if(e.target===document.getElementById('alert-modal')) closeModal();
+}
+function closeModal() {
+  document.getElementById('alert-modal').classList.remove('open');
+}
+function acknowledgeAlert() {
+  if(currentAlert) {
+    currentAlert.acked=true;
+    document.getElementById('modal-pills').innerHTML += '<span class="tag tag-green">✓ acknowledged</span>';
+    if(currentPage==='alerts') render('alerts');
+  }
+}
+function dispatchPolice() {
+  if(currentAlert) currentAlert.dispatched=true;
+  const eta = 3+Math.floor(Math.random()*6);
+  alert(`🚔 Police dispatch request sent!\nNearest PCR Van assigned\nETA: ~${eta} minutes\nWhatsApp alert sent to Control Room`);
+  TIMELINE.unshift({type:'dispatch',icon:'🚔',color:'var(--accent)',title:`PCR dispatched to ${currentAlert?.location||'target location'}`,desc:`ETA ~${eta} min · Unit notified`,time:tsNow()});
+}
+function downloadEvidence() {
+  alert('📥 Evidence package prepared\n\nContents:\n• 30s pre-event video clip\n• Frame-by-frame detection screenshots\n• GPS + timestamp metadata\n• Algorand TX receipt (court-admissible)\n• Operator action log');
+}
+function sendTestWhatsapp() {
+  alert('📨 Test WhatsApp message sent to:\n• Control Room (+91 98xxx xxxxx)\n• Deputy Commissioner (+91 97xxx xxxxx)\n\nMessage delivered via Twilio API');
+}
+function exportBlockchain() {
+  alert('⬇ Blockchain export\n\nGenerating CSV with:\n• Event ID, timestamp, TX hash\n• Location, severity, detection type\n• Algorand block number & confirmation\n\nFile: crimeeye_blockchain_export.csv');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CANVAS ANIMATION (CCTV FEED)
+// ═══════════════════════════════════════════════════════════
+function stopAllAnims() {
+  canvasAnims.forEach(h=>cancelAnimationFrame(h));
+  canvasAnims.clear();
+}
+
+function startCanvasAnim(elemId, hasAlert, offline, alertType) {
+  if(offline) return;
+  const el = typeof elemId==='string'?document.getElementById(elemId):elemId;
+  if(!el) return;
+  const ctx = el.getContext('2d');
+  let frame = 0;
+  const persons = Array.from({length:3+Math.floor(Math.random()*5)},(_,i)=>({
+    x:15+Math.random()*220, y:18+Math.random()*75,
+    vx:(Math.random()-.5)*0.45, vy:(Math.random()-.5)*0.22,
+    w:7+Math.random()*5, h:17+Math.random()*9,
+    alert:hasAlert&&i<2
+  }));
+  function draw() {
+    const W = el.width = el.offsetWidth||240;
+    const H = el.height = el.offsetHeight||135;
+    ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+    // scanlines
+    ctx.fillStyle='rgba(255,255,255,0.01)';
+    for(let y=0;y<H;y+=3) ctx.fillRect(0,y,W,1);
+    // noise
+    for(let i=0;i<28;i++){ctx.fillStyle=`rgba(255,255,255,${Math.random()*.035})`;ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*2.5,Math.random()*2.5);}
+    // ground line
+    ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,H*.68);ctx.lineTo(W,H*.68);ctx.stroke();
+    persons.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W-p.w)p.vx*=-1;
+      if(p.y<0||p.y>H*.6)p.vy*=-1;
+      if(p.alert){
+        ctx.strokeStyle=frame%32<16?'#f04040':'#f5a623';
+        ctx.lineWidth=1.5;
+        ctx.strokeRect(p.x-2,p.y-2,p.w+4,p.h+4);
+        ctx.font='7px IBM Plex Mono,monospace';
+        ctx.fillStyle=frame%32<16?'#f04040':'#f5a623';
+        ctx.fillText(alertType?alertType.toUpperCase():'ALERT',p.x,p.y-4);
+      } else {
+        ctx.strokeStyle='rgba(79,140,255,0.45)';ctx.lineWidth=0.8;
+        ctx.strokeRect(p.x,p.y,p.w,p.h);
+      }
+      ctx.fillStyle=p.alert?'rgba(240,64,64,0.55)':'rgba(110,125,155,0.5)';
+      ctx.fillRect(p.x+1,p.y,p.w-2,p.h);
+      ctx.beginPath();ctx.arc(p.x+p.w/2,p.y-2,p.w/2.2,0,Math.PI*2);ctx.fill();
+    });
+    ctx.font='7.5px IBM Plex Mono,monospace';ctx.fillStyle='rgba(255,255,255,0.3)';
+    const d=new Date();
+    ctx.fillText(d.toTimeString().slice(0,8),5,H-5);
+    frame++;
+    const handle=requestAnimationFrame(draw);
+    canvasAnims.set(elemId,handle);
+  }
+  draw();
+}
+
+function afterRender(p) {
+  stopAllAnims();
+  if(p==='cameras') {
+    CAMERAS.forEach(c=>{ if(c.status==='active') setTimeout(()=>startCanvasAnim('canvas-'+c.id,c.alerts>0,false,null),60); });
+  }
+  // FPS counter
+  setInterval(()=>{
+    const el=document.getElementById('fps-counter');
+    if(el) el.textContent=(27.5+Math.random()*3.5).toFixed(1)+' fps';
+  },1400);
+}
+
+// ═══════════════════════════════════════════════════════════
+// TEST & SIMULATION
+// ═══════════════════════════════════════════════════════════
+function triggerTestAlert() {
+  const a = addAlert();
+  if(currentPage==='dashboard'||currentPage==='alerts') render(currentPage);
+  setTimeout(()=>openAlert(a),200);
+}
+
+function camClick(id) {
+  const cam = CAMERAS.find(c=>c.id===id);
+  if(!cam) return;
+  const alert = ALERTS.find(a=>a.cam===id);
+  if(alert) openAlert(alert);
+  else {
+    showToast({type:'object',severity:'low',score:0,location:cam.name,cam:id,id:'SYS-'+id,time:tsNow()});
+  }
+}
+
+// Auto simulation
+setInterval(()=>{
+  if(Math.random()<0.12){
+    addAlert();
+    if(currentPage==='dashboard'||currentPage==='alerts') render(currentPage);
+  }
+}, 9000);
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+render('dashboard');
+</script>
+</body>
+</html>
